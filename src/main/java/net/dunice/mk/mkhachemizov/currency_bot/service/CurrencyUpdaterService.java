@@ -22,20 +22,24 @@ public class CurrencyUpdaterService {
     private static final Logger log = LoggerFactory.getLogger(CurrencyUpdaterService.class);
     private final TelegramBotRepository repository;
 
-    public void updateCurrencies() {
+    public Map<String, Double> updateCurrencies() {
+        Map<String, Double> rates = new HashMap<>();
         try {
             String url = "https://www.cbr.ru/currency_base/daily/";
             Document doc = Jsoup.connect(url).get();
             Elements rows = doc.select("table.data tr");
 
-            Map<String, Double> rates = new HashMap<>();
-
             for (Element row : rows) {
                 Elements columns = row.select("td");
                 if (columns.size() > 4) {
-                    String currencyCode = columns.get(1).text();
-                    Double rate = Double.parseDouble(columns.get(4).text().replace(",", "."));
-                    rates.put(currencyCode, rate);
+                    String unitStr = columns.get(2).text();
+                    String currencyName = columns.get(3).text();
+                    double rate = Double.parseDouble(columns.get(4).text().replace(",", "."));
+                    if (!unitStr.equals("1")){
+                        int unit = Integer.parseInt(unitStr);
+                        rate /= unit;
+                    }
+                    rates.put(currencyName, rate);
                 }
             }
             for (String key : rates.keySet()) {
@@ -49,10 +53,6 @@ public class CurrencyUpdaterService {
         catch (Exception e) {
             log.error("Не удалось вытянуть актуальный курс", e);
         }
+        return rates;
     }
-
-    public void getCurrencies() {
-        repository.findAll();
-    }
-
 }
