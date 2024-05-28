@@ -1,0 +1,14 @@
+bot:
+  name: Botyara_currency_bot
+  token: 7074523906:AAHJI7ALZUfnHmbIcrHdASLJFokjLsiKfkc
+spring:
+  datasource:
+    name: currency_bot
+    username: postgres
+    password: 70131
+    url: jdbc:postgresql://localhost:5432/currency_bot
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
