@@ -51,4 +51,8 @@ public class CurrencyUpdaterService {
         }
     }
 
+    public void getCurrencies() {
+        repository.findAll();
+    }
+
 }

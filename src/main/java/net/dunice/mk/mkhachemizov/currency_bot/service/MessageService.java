@@ -85,7 +85,7 @@ public class MessageService {
         List<InlineKeyboardButton> row1 = new ArrayList<>();
         row1.add(createButton("Новый курс", "Новый курс"));
         row1.add(createButton("Стоп", "stop"));
-        row1.add((createButton("Удалить старый курс", "Удалить старый курс")));
+        row1.add(createButton("Удалить старый курс", "Удалить старый курс"));
         keyboard.add(row1);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
