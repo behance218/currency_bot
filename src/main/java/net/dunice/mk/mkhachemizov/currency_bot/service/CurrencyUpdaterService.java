@@ -1,5 +1,9 @@
 package net.dunice.mk.mkhachemizov.currency_bot.service;
 
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import net.dunice.mk.mkhachemizov.currency_bot.entity.CurrencyRate;
 import net.dunice.mk.mkhachemizov.currency_bot.repository.TelegramBotRepository;
@@ -9,11 +13,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +37,7 @@ public class CurrencyUpdaterService {
                     String unitStr = columns.get(2).text();
                     String currencyName = columns.get(3).text();
                     double rate = Double.parseDouble(columns.get(4).text().replace(",", "."));
-                    if (!unitStr.equals("1")){
+                    if (!unitStr.equals("1")) {
                         int unit = Integer.parseInt(unitStr);
                         rate /= unit;
                     }

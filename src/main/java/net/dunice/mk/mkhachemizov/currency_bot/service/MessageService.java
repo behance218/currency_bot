@@ -1,26 +1,25 @@
 package net.dunice.mk.mkhachemizov.currency_bot.service;
 
-import lombok.RequiredArgsConstructor;
-import net.dunice.mk.mkhachemizov.currency_bot.config.properties.BotProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+
+import lombok.RequiredArgsConstructor;
+import net.dunice.mk.mkhachemizov.currency_bot.config.properties.BotProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +28,7 @@ public class MessageService extends TelegramLongPollingBot {
     private static final Logger log = LoggerFactory.getLogger(MessageService.class);
     private final CurrencyUpdaterService currencyUpdaterService;
     private final OutdatedCurrencyDeleteService outdatedCurrencyDeleteService;
+    //TODO: Deprecated for removal
     private Long lastMessageId = null;
     private Long lastChatId = null;
 
@@ -42,22 +42,21 @@ public class MessageService extends TelegramLongPollingBot {
         return botProperties.token();
     }
 
-    //TODO: ДОПИЛИТЬ ЭТОТ МЕТОД, ВОЗМОЖНО СНОВА РАЗДЕЛИТЬ MESSAGE SERVICE ОТ TELEGRAMLONGPOLLINGBOT-а, перенести как раньше отдельно
     @Override
     public void onUpdateReceived(Update update) {
-//        SendMessage message = messageReceiver(update);
-//        if (message != null) {
-//            try {
-//                execute(message);
-//                if (message.getText().contains("Меню") || message.getReplyMarkup() == getExpandedMenuKeyboard()) {
-//                    lastMessageId = message.getMessageId;
-//                    lastChatId = Long.valueOf(message.getChatId());
-//                }
-//            } catch (TelegramApiException e) {
-//                log.error("При ответе юзеру возникла проблема", e);
-//            }
-////            sendMessageAndSaveId(message);
-//        }
+        SendMessage message = messageReceiver(update);
+        if (message != null) {
+            try {
+                execute(message);
+                if (message.getText().contains("Меню") || message.getReplyMarkup() == getExpandedMenuKeyboard()) {
+                    lastMessageId = Long.valueOf(message.getReplyToMessageId());
+                    lastChatId = Long.valueOf(message.getChatId());
+                }
+            }
+            catch (TelegramApiException e) {
+                log.error("При ответе юзеру возникла проблема", e);
+            }
+        }
     }
 
     public SendMessage messageReceiver(Update update) {
@@ -75,37 +74,33 @@ public class MessageService extends TelegramLongPollingBot {
         Long chatId = update.getMessage().getChatId();
         String name = update.getMessage().getChat().getFirstName();
 
-        deletePreviousMessage();
 
         String responseText;
         ReplyKeyboardMarkup replyMarkup = getMenuKeyboard();
 
-        if (text.equals("/start")) {
-            responseText = String.format("Привет, %s! Я - твой телеграм бот-конвертер/актуатор валют", name);
-        }
-        else if (text.equals("/stop")) {
-            responseText = String.format("До свидания, %s! Рад был помочь!", name);
-        }
-        else if (text.equals("Меню")) {
-            responseText = "Выберите действие из меню ниже";
-            replyMarkup = getExpandedMenuKeyboard();
-        }
-        else if (text.equals("Новый курс")) {
-            responseText = String.format("Понял тебя, %s! Загружаю актуальный курс на сегодня", name);
-            Map<String, Double> rates = currencyUpdaterService.updateCurrencies();
-            responseText += "\nТекущие курсы по отношению к рублю:\n" + rates.entrySet().stream()
-                    .map(entry -> entry.getKey() + ": " + entry.getValue())
-                    .collect(Collectors.joining("\n"));
-            replyMarkup = getExpandedMenuKeyboard();
-        }
-        else if (text.equals("Удалить старый курс")) {
-            responseText = String.format("Понял тебя, %s! Удаляю неактуальные данные. Теперь при нажатии на кнопку " +
-                    "получения нового курса вы получите самый свежий курс на сегодняшний день", name);
-            outdatedCurrencyDeleteService.deleteOutdatedCurrency();
-            replyMarkup = getExpandedMenuKeyboard();
-        }
-        else {
-            responseText = "Я таких команд не знаю, к сожалению!";
+        switch (text) {
+            case "/start" ->
+                    responseText = String.format("Привет, %s! Я - твой телеграм бот-конвертер/актуатор валют", name);
+            case "/stop" -> responseText = String.format("До свидания, %s! Рад был помочь!", name);
+            case "Меню" -> {
+                responseText = "Выберите действие из меню ниже";
+                replyMarkup = getExpandedMenuKeyboard();
+            }
+            case "Новый курс" -> {
+                responseText = String.format("Понял тебя, %s! Загружаю актуальный курс на сегодня", name);
+                Map<String, Double> rates = currencyUpdaterService.updateCurrencies();
+                responseText += "\nТекущие курсы по отношению к рублю:\n" + rates.entrySet().stream()
+                        .map(entry -> "\n" + entry.getKey() + ": " + entry.getValue() + "\n")
+                        .collect(Collectors.joining("\n"));
+                replyMarkup = getExpandedMenuKeyboard();
+            }
+            case "Удалить старый курс" -> {
+                responseText = String.format("Понял тебя, %s! Удаляю неактуальные данные. Теперь при нажатии на кнопку " +
+                        "получения нового курса вы получите самый свежий курс на сегодняшний день", name);
+                outdatedCurrencyDeleteService.deleteOutdatedCurrency();
+                replyMarkup = getExpandedMenuKeyboard();
+            }
+            default -> responseText = "Я таких команд не знаю, к сожалению!";
         }
 
         SendMessage message = new SendMessage();
@@ -121,8 +116,8 @@ public class MessageService extends TelegramLongPollingBot {
         String data = callbackQuery.getData();
         Long chatId = callbackQuery.getMessage().getChatId();
         String name = callbackQuery.getMessage().getChat().getFirstName();
+        Integer messageId = callbackQuery.getMessage().getMessageId();
 
-        deletePreviousMessage();
 
         String responseText;
         switch (data) {
@@ -132,8 +127,8 @@ public class MessageService extends TelegramLongPollingBot {
             case "Новый курс":
                 responseText = String.format("Понял тебя, %s. Загружаю актуальный курс на сегодня", name);
                 Map<String, Double> rates = currencyUpdaterService.updateCurrencies();
-                responseText += "\nТекущие курсы по отношению к рублю:\n" + rates.entrySet().stream()
-                        .map(entry -> entry.getKey() + ": " + entry.getValue())
+                responseText += "\nТекущие курсы рубля по отношению к следующим валютам:\n" + rates.entrySet().stream()
+                        .map(entry -> "\n" + entry.getKey() + ": " + entry.getValue() + "\n")
                         .collect(Collectors.joining("\n"));
                 break;
             case "Удалить старый курс":
@@ -152,6 +147,9 @@ public class MessageService extends TelegramLongPollingBot {
         message.setChatId(chatId);
         message.setText(responseText);
         message.setReplyMarkup(getExpandedMenuKeyboard());
+        //TODO: Deprecated for removal
+        lastChatId = chatId;
+        lastMessageId = Long.valueOf(messageId);
 
         return message;
     }
@@ -188,26 +186,7 @@ public class MessageService extends TelegramLongPollingBot {
         return keyboardMarkup;
     }
 
-//    private InlineKeyboardMarkup getInlineKeyboard() {
-//        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
-//
-//        List<InlineKeyboardButton> row1 = new ArrayList<>();
-//        row1.add(createButton("Новый курс", "Новый курс"));
-//        row1.add(createButton("Стоп", "stop"));
-//        row1.add(createButton("Удалить старый курс", "Удалить старый курс"));
-//        keyboard.add(row1);
-//        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-//        inlineKeyboardMarkup.setKeyboard(keyboard);
-//        return inlineKeyboardMarkup;
-//    }
-
-//    private InlineKeyboardButton createButton(String text, String callbackData) {
-//        InlineKeyboardButton button = new InlineKeyboardButton();
-//        button.setText(text);
-//        button.setCallbackData(callbackData);
-//        return button;
-//    }
-
+    @Deprecated(forRemoval = true)
     private void deletePreviousMessage() {
         if (lastMessageId != null && lastChatId != null) {
             DeleteMessage deleteMessage = new DeleteMessage();
@@ -221,17 +200,6 @@ public class MessageService extends TelegramLongPollingBot {
             }
             lastMessageId = null;
             lastChatId = null;
-        }
-    }
-
-    private void sendMessageAndSaveId(SendMessage message) {
-        try {
-            Message sentMessage = execute(message);
-            lastMessageId = Long.valueOf(sentMessage.getMessageId());
-            lastChatId = sentMessage.getChatId();
-        }
-        catch (TelegramApiException e) {
-            log.error("Не удалось отправить сообщение или получить ID", e);
         }
     }
 }

@@ -1,12 +1,14 @@
 package net.dunice.mk.mkhachemizov.currency_bot.service;
 
+import java.time.LocalDate;
+
 import lombok.RequiredArgsConstructor;
 import net.dunice.mk.mkhachemizov.currency_bot.repository.TelegramBotRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +21,8 @@ public class OutdatedCurrencyDeleteService {
         try {
             LocalDate yesterday = LocalDate.now().minusDays(1);
             telegramBotRepository.deleteOutdatedCurrency(yesterday);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Не удалось удалить устаревшие даты из базы");
         }
     }
