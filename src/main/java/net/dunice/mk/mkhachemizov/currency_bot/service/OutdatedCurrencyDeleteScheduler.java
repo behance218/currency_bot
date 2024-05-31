@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class OutdatedCurrencyDeleteScheduler {
-    private final OutdatedCurrencyDeleteService outdatedCurrencyDeleteService;
+    private final CurrencyDeleteService currencyDeleteService;
 
-    @Scheduled(cron = "0 30 8 * * ?") //Every day at 8:30
+    @Scheduled(cron = "0 00 10 * * ?") //Every day at 10:00
     public void deleteOutdatedRates() {
-        outdatedCurrencyDeleteService.deleteOutdatedCurrency();
+        currencyDeleteService.deleteAllCurrencies();
     }
 
 }
