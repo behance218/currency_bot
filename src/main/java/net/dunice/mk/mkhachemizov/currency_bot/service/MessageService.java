@@ -106,12 +106,12 @@ public class MessageService extends TelegramLongPollingBot {
                 }
                 case "Удалить курс" -> {
                     responseText = String.format("Понял тебя, %s! Удаляю неактуальные данные. Теперь при нажатии на кнопку " +
-                            "получения нового курса вы получите самый свежий курс на сегодняшний день", name);
+                            "получения нового курса ты получишь самый свежий курс на сегодняшний день", name);
                     currencyDeleteService.deleteAllCurrencies();
                     replyMarkup = getExpandedMenuKeyboard();
                 }
                 case "Рубль -> Валюта" -> {
-                    responseText = String.format("Понял тебя, %s! Введите название целевой валюты и количество рублей для конвертации в виде: \nназвание валюты, количество рублей\n", name);
+                    responseText = String.format("Понял тебя, %s! Введи название целевой валюты и количество рублей для конвертации в виде: \nназвание валюты, количество рублей\n", name);
                     isAwaitingRubleInput = true;
                     replyMarkup = getExpandedMenuKeyboard();
                 }
@@ -128,8 +128,14 @@ public class MessageService extends TelegramLongPollingBot {
         message.setChatId(chatId);
         message.setText(responseText);
         message.setReplyMarkup(replyMarkup);
-        chatIds.add(chatId);
-        log.info("Добавлен chatId: {}", chatId);
+        if (chatIds.contains(chatId)) {
+            log.warn("ID чата уже есть в сете ID");
+        }
+        else {
+            chatIds.add(chatId);
+            log.info("Добавлен chatId: {}", chatId);
+        }
+
 
 
         return message;
@@ -155,7 +161,8 @@ public class MessageService extends TelegramLongPollingBot {
                         .collect(Collectors.joining("\n"));
                 break;
             case "Удалить курс":
-                responseText = String.format("Понял тебя, %s. Удаляю устаревшие данные", name);
+                responseText = String.format("Понял тебя, %s! Удаляю неактуальные данные. Теперь при нажатии на кнопку \" +\n" +
+                        "                            \"получения нового курса ты получишь самый свежий курс на сегодняшний день", name);
                 currencyDeleteService.deleteAllCurrencies();
                 break;
             case "Стоп":
@@ -170,8 +177,14 @@ public class MessageService extends TelegramLongPollingBot {
         message.setChatId(chatId);
         message.setText(responseText);
         message.setReplyMarkup(getExpandedMenuKeyboard());
-        chatIds.add(chatId);
-        log.info("Добавлен chatId: {}", chatId);
+        if (chatIds.contains(chatId)) {
+            log.warn("ID чата уже есть в сете ID");
+        }
+        else {
+            chatIds.add(chatId);
+            log.info("Добавлен chatId: {}", chatId);
+        }
+
 
         return message;
     }
